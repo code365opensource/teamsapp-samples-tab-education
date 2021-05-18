@@ -10,9 +10,10 @@ import {
   FormDropdown,
   List,
   FormTextArea,
+  Loader,
 } from "@fluentui/react-northstar";
 import * as microsoftTeams from "@microsoft/teams-js";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 
 function Parent() {
@@ -20,11 +21,21 @@ function Parent() {
   const [posts, setPosts] = useState<[any]>();//公告
   const [assignments, setAssignments] = useState<[any]>();//作业列表
 
+  useEffect(() => {
+    //默认尝试去加载localstorage里面的数据，并且从服务器刷新一次数据
+    const email = localStorage.getItem("parentEmail");
+    if (email) {
+      fetch(`api/service?call=getParentInfoByEmail&email=${email}`).then(x => x.json()).then(x => {
+        setParentInfo(x);
+      });
+    }
+  }, [])
+
   return (
     <Flex column fill gap="gap.medium">
       <Segment color="brand" inverted>
         <Flex column fill gap="gap.small">
-          <Text content={`你好,${parentInfo ? parentInfo[0].student + " " + parentInfo[0].type : "家长"}`} size="larger"></Text>
+          <Text content={`你好,家长`} size="larger"></Text>
           <Text content="这是家校通的家长界面，在这里你看到孩子的作业完成情况，以及老师下发的通知公告等" size="small"></Text>
         </Flex>
       </Segment>
@@ -41,6 +52,8 @@ function Parent() {
             //作为范例，这里目前没有做真正的验证
             fetch(`api/service?call=getParentInfoByEmail&email=${email}`).then(x => x.json()).then(x => {
               setParentInfo(x);
+            }).then(_ => {
+              localStorage.setItem("parentEmail", email);
             });
           }}
         >
@@ -48,7 +61,6 @@ function Parent() {
           <FormButton content="登录" primary></FormButton>
         </Form>
       </Segment>}
-
     </Flex>
   )
 }
