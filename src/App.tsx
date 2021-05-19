@@ -37,7 +37,7 @@ function Parent() {
 
 
     const AssignmentStatus = (props: { id: string, class: string, student: string }) => {
-      const [status, setStatus] = useState<string>("正在检索状态");
+      const [status, setStatus] = useState<string>("Checking...");
 
       useEffect(() => {
         fetch(`api/service?call=getsubmissionsbyassignment&class=${props.class}&id=${props.id}&student=${props.student}`)
@@ -47,31 +47,29 @@ function Parent() {
               //这个学生有提交作业
               const submissionId = x.value[0].id;
               fetch(`api/service?call=getsubmissionoutcome&class=${props.class}&assignment=${props.id}&id=${submissionId}`).then(x => x.json()).then(x => {
-                if (x.value && x.value.length > 0) {
-                  let feedback, point;
+                let feedback, point;
+                x.value.forEach((item: any) => {
+                  if (item.feedback) {
+                    feedback = item.feedback.text.content;
+                  }
 
-                  x.value.forEach((item: any) => {
-                    if (item.feedback) {
-                      feedback = item.feedback.text.content;
-                    }
+                  if (item.points) {
+                    point = item.points.points;
+                  }
+                });
 
-                    if (item.points) {
-                      point = item.points.points;
-                    }
-                  });
-
-                  setStatus(`作业已提交,得分:${point},老师评语:${feedback ?? '无'}`);
-                }
+                if (feedback || point)
+                  setStatus(`Submission submitted, score is: ${point ?? 0}, feedback from teacher is: ${feedback ?? 'None'}`);
                 else
-                  setStatus("作业已提交，但老师还没有批改");
+                  setStatus(`Submission submitted, but did't get feedback from teacher yet.`);
               });
             }
             else
-              setStatus("当前还没有提交作业");
+              setStatus("Need to submit the submission soon.");
           })
       }, []);
 
-      return (<div>{status}</div>)
+      return (<div style={{ color: status.startsWith("Need") ? "red" : status.endsWith('yet.') ? "blue" : "green" }}>{status}</div>)
     }
     useEffect(() => {
       fetch(`api/service?call=getassignmentsbyclass&id=${props.class}`).then(x => x.json()).then(x => setAssignments(x.value));
@@ -82,7 +80,7 @@ function Parent() {
           key: x.id,
           header: <h3>{x.displayName}</h3>,
           content: <>
-            <p>{`发布日期:${x.assignedDateTime},截止日期:${x.dueDateTime}, 总分:${x.grading.maxPoints}`}</p>
+            <p>{`Assigned date: ${x.assignedDateTime}, Due date: ${x.dueDateTime}, Points: ${x.grading.maxPoints}`}</p>
             <AssignmentStatus class={props.class} id={x.id} student={props.student} />
             <hr />
           </>
@@ -110,7 +108,7 @@ function Parent() {
                   return {
                     key: x.id,
                     header: x.comment,
-                    content: `${x.author} 发表于 ${x.time}`
+                    content: `${x.author} published at ${x.time}`
                   }
                 })
               }></List >
@@ -136,8 +134,8 @@ function Parent() {
     <Flex column fill gap="gap.medium">
       <Segment color="brand" inverted>
         <Flex column fill gap="gap.small">
-          <Text content={`你好,家长`} size="larger"></Text>
-          <Text content="这是家校通的家长界面，在这里你看到孩子的作业完成情况，以及老师下发的通知公告等" size="small"></Text>
+          <Text content={`Hi,Parents`} size="larger"></Text>
+          <Text content="Welcome to the Family Engagement system, as a parent, you can view the basic information of your children's assignment and status, you can also view the announments in one place, communicate with teachers by your convinence way." size="small"></Text>
         </Flex>
       </Segment>
 
@@ -146,11 +144,11 @@ function Parent() {
           parentInfo.map(x => {
             return {
               key: x.class,
-              header: `作为${x.student}的${x.type}, 班级编号:${x.class}`,
+              header: `As ${x.student}'s ${x.type}, Class number is: ${x.class}`,
               content: <>
-                <h2>作业列表</h2>
+                <h2>Assignments</h2>
                 <AssignmentList class={x.class} student={x.id}></AssignmentList>
-                <h2>班级公告</h2>
+                <h2>Announments</h2>
                 <PostList class={x.class}></PostList>
               </>
             }
@@ -172,8 +170,8 @@ function Parent() {
             });
           }}
         >
-          <FormInput name="txtEmail" placeholder="请使用邮箱登录"></FormInput>
-          <FormButton content="登录" primary></FormButton>
+          <FormInput name="txtEmail" placeholder="Use your email to login"></FormInput>
+          <FormButton content="Login" primary></FormButton>
         </Form>
       </Segment>}
     </Flex>
@@ -195,14 +193,14 @@ function Student(props: { studentId: string, studentName: string, classId: strin
     <Flex column fill gap="gap.medium">
       <Segment color="brand" inverted>
         <Flex column fill gap="gap.small">
-          <Text content={`你好,${props.studentName}`} size="larger"></Text>
-          <Text content="在这里你可以设置家长信息，你需要输入邮箱地址，和选择称谓。你设置的家长，可以通过邮箱登录到家校通（网页版），然后可以查看你所在班级的作业及老师批改情况，并且可以跟你所在班级的老师进行留言互动。" size="small"></Text>
+          <Text content={`Hi,${props.studentName}`} size="larger"></Text>
+          <Text content="As a student, you can add your parents into the Family Engagement system, so that they can view the basic information of your assignment and the submission status, they also can communicate with your teachers smoothly. Everything is under your control, you can disable the settings at anytime if you want. " size="small"></Text>
         </Flex>
       </Segment>
 
       {settings && settings.length > 0 &&
         <Segment>
-          <h2>已经添加的家长</h2>
+          <h2>Added parents</h2>
           <List items={settings?.map((x: any) => {
             return {
               key: x.email,
@@ -214,7 +212,7 @@ function Student(props: { studentId: string, studentName: string, classId: strin
       }
       <Segment>
 
-        <h2>添加新的家长</h2>
+        <h2>Add your parent</h2>
         <Form
           style={{ marginLeft: 20 }}
           onSubmit={() => {
@@ -238,7 +236,7 @@ function Student(props: { studentId: string, studentName: string, classId: strin
         >
 
           <FormInput
-            label="家长邮箱"
+            label="Email"
             name="firstName"
             id="first-name"
             required
@@ -251,7 +249,7 @@ function Student(props: { studentId: string, studentName: string, classId: strin
             items={['爸爸', '妈妈', '爷爷', '奶奶', '外公', '外婆', '其他']}
             search={true}
             autoSize={false}
-            placeholder="选择家长称谓"
+            placeholder="Select Type"
             defaultValue={selectedType}
             onChange={(evt, data) => {
               if (data.value) {
@@ -259,7 +257,7 @@ function Student(props: { studentId: string, studentName: string, classId: strin
               }
             }}
           />
-          <FormButton content="提交" />
+          <FormButton content="Submit" />
         </Form>
       </Segment>
     </Flex>)
@@ -288,7 +286,7 @@ function Teacher(props: { teacherId: string, teacherName: string, classId: strin
                 return {
                   key: x.id,
                   header: x.comment,
-                  content: `${x.author} 发表于 ${x.time}`
+                  content: `${x.author} published at ${x.time}`
                 }
               })
             }></List >
@@ -300,13 +298,13 @@ function Teacher(props: { teacherId: string, teacherName: string, classId: strin
     <Flex column fill gap="gap.medium">
       <Segment color="brand" inverted>
         <Flex column fill gap="gap.small">
-          <Text content={`你好,${props.teacherName}`} size="larger"></Text>
-          <Text content="这是家校通的老师界面，在这里你可以发布公告，并且也可以查看家长的回复" size="small"></Text>
+          <Text content={`Hi,${props.teacherName}`} size="larger"></Text>
+          <Text content="Welcome to the Family Engagement system, As a teacher, you can post announments here, and communicate with parents in one place." size="small"></Text>
         </Flex>
       </Segment>
 
       <Segment>
-        <h2>发布公告</h2>
+        <h2>Post Announment</h2>
         <Form
           style={{ marginLeft: 20 }}
           onSubmit={(evt) => {
@@ -324,18 +322,18 @@ function Teacher(props: { teacherId: string, teacherName: string, classId: strin
           }}
         >
           <FormTextArea style={{ width: 600 }} name="txtcomment" />
-          <FormButton content="发布"></FormButton>
+          <FormButton content="Publish"></FormButton>
         </Form>
       </Segment>
 
       <Segment>
-        <h2>公告列表</h2>
+        <h2>Announments</h2>
         <List items={posts?.map((x: any) => {
           return {
             key: x.id,
             header: <>
               <h3>{x.content}</h3>
-              <p>发布于: {x.time}</p>
+              <p>Published at: {x.time}</p>
             </>,
             content: <Comment postId={x.id} />
           }
@@ -362,7 +360,7 @@ function Tab() {
         (context.userTeamRole ?
           <Student studentId={context.userObjectId} studentName={context.userPrincipalName.split('@')[0]} classId={context.groupId} /> :
           <Teacher teacherName={context.userPrincipalName.split('@')[0]} teacherId={context.userObjectId} classId={context.groupId}></Teacher>)
-        : <div>正在加载...</div>
+        : <div>Loading...</div>
       }
     </>
   )

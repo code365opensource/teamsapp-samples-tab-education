@@ -2,15 +2,15 @@
   "studentSettings": [
     {
       "id": "4e0ea706-6806-4cd3-ad63-e42daab30b5d",
-      "student": "AshleyK",
-      "type": "爸爸",
+      "student": "Ashley",
+      "type": "Dad",
       "email": "dad@code365.xyz",
       "class": "64612a03-d205-4045-ae76-7c9f6e5006b1"
     },
     {
       "id": "4e0ea706-6806-4cd3-ad63-e42daab30b5d",
-      "student": "AshleyK",
-      "type": "妈妈",
+      "student": "Ashley",
+      "type": "Mom",
       "email": "mon@code365.xyz",
       "class": "64612a03-d205-4045-ae76-7c9f6e5006b1"
     }
@@ -19,28 +19,28 @@
     {
       "id": "ac2b076d-2066-4ce1-82cb-845b82f5d7c7",
       "teacherId": "27b7849e-624d-41f8-aa8b-2f9740813351",
-      "content": "各位家长，明天下午要开家长会，请准时参加，在南（1）教室！",
+      "content": "We will have an all-hands meeting tomorrow 3PM, at the Room 123.",
       "time": "5/18/2021, 2:38:46 PM",
       "class": "64612a03-d205-4045-ae76-7c9f6e5006b1"
     },
     {
       "id": "e9957b58-899f-441d-89a9-70f2c2996ff9",
       "teacherId": "27b7849e-624d-41f8-aa8b-2f9740813351",
-      "content": "本学期入学测验结果公布，请各位家长留意短信。",
+      "content": "The test result is ready to send. Please check your phone and email。",
       "time": "5/18/2021, 2:38:47 PM",
       "class": "64612a03-d205-4045-ae76-7c9f6e5006b1"
     },
     {
       "id": "441288cf-e6bd-40d3-99ba-6c33d5f57679",
       "teacherId": "27b7849e-624d-41f8-aa8b-2f9740813351",
-      "content": "大家好，新一年的活动开始征集了",
+      "content": "Story of the New year, we want yours.",
       "time": "5/18/2021, 5:53:41 PM",
       "class": "64612a03-d205-4045-ae76-7c9f6e5006b1"
     },
     {
       "id": "f659f457-c5cc-44ad-863b-bc339c547446",
       "teacherId": "27b7849e-624d-41f8-aa8b-2f9740813351",
-      "content": "值日生征集了！！！",
+      "content": "The new event launched！！！",
       "time": "5/18/2021, 5:55:14 PM",
       "class": "64612a03-d205-4045-ae76-7c9f6e5006b1"
     }
@@ -49,15 +49,15 @@
     {
       "id": "yyyy",
       "postId": "ac2b076d-2066-4ce1-82cb-845b82f5d7c7",
-      "comment": "收到！谢谢老师！",
-      "author": "AshleyK 妈妈",
+      "comment": "Thanks, will do.",
+      "author": "Ashley’s Mom",
       "time": "5/18/2021, 2:38:46 PM"
     },
     {
       "id": "xxxx",
       "postId": "ac2b076d-2066-4ce1-82cb-845b82f5d7c7",
-      "comment": "好的，准时参加！",
-      "author": "AshleyK 爸爸",
+      "comment": "Got it, will be there on time!",
+      "author": "Ashley's Dad",
       "time": "5/18/2021, 2:38:46 PM"
     }
   ]
