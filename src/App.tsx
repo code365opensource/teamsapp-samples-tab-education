@@ -10,16 +10,15 @@ import {
   FormDropdown,
   List,
   FormTextArea,
-  Loader,
 } from "@fluentui/react-northstar";
 import * as microsoftTeams from "@microsoft/teams-js";
 import React, { useEffect, useState } from "react";
 
 
 function Parent() {
-  const [parentInfo, setParentInfo] = useState<any>();//家长信息
-  const [posts, setPosts] = useState<[any]>();//公告
-  const [assignments, setAssignments] = useState<[any]>();//作业列表
+  const [parentInfo, setParentInfo] = useState<[any]>();//家长信息
+
+
 
   useEffect(() => {
     //默认尝试去加载localstorage里面的数据，并且从服务器刷新一次数据
@@ -29,7 +28,109 @@ function Parent() {
         setParentInfo(x);
       });
     }
-  }, [])
+  }, []);
+
+
+  // 作业列表组件
+  const AssignmentList = (props: { class: string, student: string }) => {
+    const [assignments, setAssignments] = useState<[any]>();//作业列表
+
+
+    const AssignmentStatus = (props: { id: string, class: string, student: string }) => {
+      const [status, setStatus] = useState<string>("正在检索状态");
+
+      useEffect(() => {
+        fetch(`api/service?call=getsubmissionsbyassignment&class=${props.class}&id=${props.id}&student=${props.student}`)
+          .then(x => x.json())
+          .then(x => {
+            if (x.value && x.value.length > 0) {
+              //这个学生有提交作业
+              const submissionId = x.value[0].id;
+              fetch(`api/service?call=getsubmissionoutcome&class=${props.class}&assignment=${props.id}&id=${submissionId}`).then(x => x.json()).then(x => {
+                if (x.value && x.value.length > 0) {
+                  let feedback, point;
+
+                  x.value.forEach((item: any) => {
+                    if (item.feedback) {
+                      feedback = item.feedback.text.content;
+                    }
+
+                    if (item.points) {
+                      point = item.points.points;
+                    }
+                  });
+
+                  setStatus(`作业已提交,得分:${point},老师评语:${feedback ?? '无'}`);
+                }
+                else
+                  setStatus("作业已提交，但老师还没有批改");
+              });
+            }
+            else
+              setStatus("当前还没有提交作业");
+          })
+      }, []);
+
+      return (<div>{status}</div>)
+    }
+    useEffect(() => {
+      fetch(`api/service?call=getassignmentsbyclass&id=${props.class}`).then(x => x.json()).then(x => setAssignments(x.value));
+    }, [])
+    return (<List items={
+      assignments?.map(x => {
+        return {
+          key: x.id,
+          header: <h3>{x.displayName}</h3>,
+          content: <>
+            <p>{`发布日期:${x.assignedDateTime},截止日期:${x.dueDateTime}, 总分:${x.grading.maxPoints}`}</p>
+            <AssignmentStatus class={props.class} id={x.id} student={props.student} />
+            <hr />
+          </>
+        }
+      })
+    }></List>)
+  }
+
+  //公告列表组件
+  const PostList = (props: { class: string }) => {
+    const [posts, setPosts] = useState<[any]>();//公告
+
+    const Comment = (props: { postId: string }) => {
+      const [comments, setComments] = useState<[any]>();
+      useEffect(() => {
+        fetch(`api/service?call=getcommentsbypost&id=${props.postId}`).then(x => x.json()).then(x => setComments(x));
+      }, [])
+
+      return (<>
+        {
+          comments ?
+            <List
+              items={
+                comments?.map(x => {
+                  return {
+                    key: x.id,
+                    header: x.comment,
+                    content: `${x.author} 发表于 ${x.time}`
+                  }
+                })
+              }></List >
+            : ""}
+        <hr /></>)
+    }
+
+    useEffect(() => {
+      fetch(`api/service?call=getpostsbyclass&id=${props.class}`).then(x => x.json()).then(x => setPosts(x));
+    }, [])
+    return (<List items={
+      posts?.map(x => {
+        return {
+          key: x.id,
+          header: <h3>{x.content}</h3>,
+          content: <Comment postId={x.id}></Comment>
+        }
+      })
+    }></List>)
+  }
 
   return (
     <Flex column fill gap="gap.medium">
@@ -41,7 +142,21 @@ function Parent() {
       </Segment>
 
       {parentInfo && <Segment>
-
+        <List items={
+          parentInfo.map(x => {
+            return {
+              key: x.class,
+              header: `作为${x.student}的${x.type}, 班级编号:${x.class}`,
+              content: <>
+                <h2>作业列表</h2>
+                <AssignmentList class={x.class} student={x.id}></AssignmentList>
+                <h2>班级公告</h2>
+                <PostList class={x.class}></PostList>
+              </>
+            }
+          })
+        }>
+        </List>
       </Segment>}
 
 
